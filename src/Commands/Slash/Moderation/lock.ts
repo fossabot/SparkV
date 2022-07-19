@@ -6,7 +6,7 @@ async function execute(bot: any, message: any, args: string[], command: any, dat
 	const reason = (message?.applicationId ? data.options.getString("reason") : args.join(" ")) || "No reason provided.";
 
 	try {
-		await message.guild.roles.cache.forEach((role: Role) => message.channel.permissionOverwrites.create(role, { SEND_MESSAGES: false }));
+		await message.guild.roles.cache.forEach((role: Role) => message.channel.permissionOverwrites.create(role, { SendMessages: false }));
 
 		return await message.replyT({
 			embeds: [{

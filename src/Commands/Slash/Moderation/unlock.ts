@@ -4,7 +4,7 @@ import cmd from "../../../Structures/modCommand";
 
 async function execute(bot: any, message: any, args: string[], command: any, data: any) {
 	try {
-		await message.guild.roles.cache.forEach((role: Role) => message.channel.permissionOverwrites.create(role, { SEND_MESSAGES: true }));
+		await message.guild.roles.cache.forEach((role: Role) => message.channel.permissionOverwrites.create(role, { SendMessages: true }));
 
 		return await message.replyT({
 			embeds: [{

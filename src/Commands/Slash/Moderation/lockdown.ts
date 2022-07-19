@@ -22,7 +22,7 @@ async function execute(bot: any, message: any, args: string[], command: any, dat
 		if (state.toLowerCase() === "on") {
 			Channels.forEach((channel: any) => {
 				channel.permissionOverwrites.create(message.guild.roles.everyone, {
-					SEND_MESSAGES: false
+					SendMessages: false
 				});
 			});
 
@@ -32,7 +32,7 @@ async function execute(bot: any, message: any, args: string[], command: any, dat
 		} else if (state.toLowerCase() === "off") {
 			Channels.forEach((channel: any) => {
 				channel.permissionOverwrites.create(message.guild.roles.everyone, {
-					SEND_MESSAGES: true
+					SendMessages: true
 				});
 			});
 

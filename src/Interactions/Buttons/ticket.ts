@@ -29,20 +29,20 @@ export default {
 
 				const permissionOverwrites = [{
 					id: bot.user.id,
-					allow: ["SEND_MESSAGES", "VIEW_CHANNEL"]
+					allow: ["SendMessages", "ViewChannel"]
 				}, {
 					id: interaction.member.id,
-					allow: ["SEND_MESSAGES", "VIEW_CHANNEL"]
+					allow: ["SendMessages", "ViewChannel"]
 				}, {
 					id: interaction.guild.roles.everyone,
-					deny: ["VIEW_CHANNEL"]
+					deny: ["ViewChannel"]
 				}];
 
 				if (guild?.tickets?.roles.length > 0) {
 					guild.tickets.roles.forEach((role: Role) => {
 						permissionOverwrites.push({
 							id: role,
-							allow: ["SEND_MESSAGES", "VIEW_CHANNEL"]
+							allow: ["SendMessages", "ViewChannel"]
 						});
 					});
 				}
@@ -83,13 +83,13 @@ export default {
 					name: `${interaction.channel.name}-closed`,
 					permissionOverwrites: [{
 						id: bot.user.id,
-						allow: ["SEND_MESSAGES", "VIEW_CHANNEL"]
+						allow: ["SendMessages", "ViewChannel"]
 					}, {
 						id: interaction.member.id,
-						deny: ["SEND_MESSAGES", "VIEW_CHANNEL"]
+						deny: ["SendMessages", "ViewChannel"]
 					}, {
 						id: interaction.guild.roles.everyone,
-						deny: ["VIEW_CHANNEL"]
+						deny: ["ViewChannel"]
 					}]
 				}).catch((): any => { });
 
@@ -117,13 +117,13 @@ export default {
 					name: interaction.channel.name.toString().replace("-closed", ""),
 					permissionOverwrites: [{
 						id: bot.user.id,
-						allow: ["SEND_MESSAGES", "VIEW_CHANNEL"]
+						allow: ["SendMessages", "ViewChannel"]
 					}, {
 						id: interaction.channel.topic.split(" | ")[1],
-						allow: ["SEND_MESSAGES", "VIEW_CHANNEL"]
+						allow: ["SendMessages", "ViewChannel"]
 					}, {
 						id: interaction.guild.roles.everyone,
-						deny: ["VIEW_CHANNEL"]
+						deny: ["ViewChannel"]
 					}]
 				});
 
