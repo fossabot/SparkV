@@ -197,7 +197,6 @@ export default {
 				baseText += `${markdown(info)}\n`;
 			});
 
-		console.log(cmdTable, JSON.stringify(cmdTable))
 		fs.writeFileSync(path.join(`${path.join(__dirname, "..", "..")}/docs/commands.md`), baseText);
 		fs.writeFileSync(path.join(`${path.join(__dirname, "..", "..")}/docs/commandsdata.json`), JSON.stringify(cmdTable));
 	}
