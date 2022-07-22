@@ -29,50 +29,33 @@ function timeoutUser(offense: string, message: any, data: any) {
 export default {
 	once: false,
 	async execute(bot: any, message: any) {
-		// If the application owner isn't ready yet, wait for it.
 		if (!bot.application?.owner) await bot.application?.fetch().catch((): any => { });
 
-		// If the message and/or channel are partials, fetch them.
+    	/* -------------------------------------------------- PARTIALS --------------------------------------------------*/
 		if (message.channel?.partial) await message.channel.fetch().catch((): any => { });
 		if (message?.partial) await message.fetch().catch((): any => { });
 
-		// If the message's author is a bot, return. This prevents SparkV from responding to himself.
-		if (message?.author?.bot) return;
-
-		// If the message is from a DM, return. This prevents SparkV from responding to DMs.
-		if (message?.channel?.type === ChannelType.DM) return;
-
-		// If the bot cannot send messages, return.
+		/* -------------------------------------------------- PERMISSIONS CHECK --------------------------------------------------*/
 		const botMember = await message.guild.members.fetch(bot.user.id)
-		if (!botMember.permissionsIn(message.channel).has("SendMessages")) return;
+		if (!botMember.permissionsIn(message.channel).has("SendMessages")) return;		
 
-		// If the guild is part of the guild blacklist, return.
-		if (bot.config.blacklist.guilds[message.guild.id]) return await message.replyT(`Your server has been blacklisted. Reason: ${bot.config.blacklist.guilds[message.guild.id]}\n\nIf you think this ban wasn't correct, please contact support. (https://discord.gg/PPtzT8Mu3h)`);
+    	/* -------------------------------------------------- ENTRY (Bots/DMs/Blacklisted Members Prohibited) --------------------------------------------------*/
+		if (message?.author?.bot) return;
+		if (message?.channel?.type === ChannelType.DM) return;
+		if (bot.config.blacklist?.guilds[message?.guild?.id]) return await message.replyT(`Your server has been blacklisted. Reason: ${bot.config.blacklist.guilds[message.guild.id]}\n\nIf you think this ban wasn't correct, please contact support. (https://discord.gg/PPtzT8Mu3h)`);
 
-		// Cache the member.
-		if (message.guild && !message.member) await message.guild.members.fetch(message?.author?.id);
+		/* -------------------------------------------------- FETCH DATA --------------------------------------------------*/
+		if (!message.member) await message.guild.members.fetch(message?.author?.id);
 
-		// Data
 		const data: any = {};
-
-		// Get the Guild
-		if (message.guild) {
-			const guild = await bot.database.getGuild(message.guild.id);
-
-			data.guild = guild;
-			message.guild.data = data.guild;
-		}
-
-		if (message.guild && message?.author?.id && message?.guild?.id) data.member = await bot.database.getMember(message?.author?.id, message?.guild?.id);
-
-		// User data
 		data.user = await bot.database.getUser(message.author.id);
 
-		if (!data) return;
+		if (message.guild) data.guild = await bot.database.getGuild(message.guild.id);
+		if (message.guild && message?.author?.id) data.member = await bot.database.getMember(message?.author?.id, message?.guild?.id);
 
-		// Plugins
+		/* -------------------------------------------------- PLUGINS --------------------------------------------------*/
 		if (message.guild) {
-			// Vote reminder
+			/* -------------------------------------------------- VOTE REMINDER --------------------------------------------------*/
 			if (data.user.votes.reminded === "true" && (43200000 - (Date.now() - data.user.votes.voted)) > 0) {
 				data.user.votes.reminded = "false";
 				data.user.markModified("votes.reminded");
@@ -106,7 +89,7 @@ export default {
 				}
 			}
 
-			// Check user for AFK Status
+			/* -------------------------------------------------- AFK --------------------------------------------------*/
 			if (data.user.afk?.enabled === "true") {
 				data.user.afk.enabled = "false";
 				data.user.afk.reason = null;
@@ -124,7 +107,6 @@ export default {
 				});
 			}
 
-			// Check mentions for AFK
 			message.mentions.users.forEach(async (u: any) => {
 				const mentionedUserData = await bot.database.getUser(u.id);
 				if (mentionedUserData?.afk?.enabled === "true") await message.replyT({
@@ -137,7 +119,7 @@ export default {
 				});
 			});
 
-			// Check for scam links.
+			/* -------------------------------------------------- ANTISCAM --------------------------------------------------*/
 			if (data.guild?.antiScam.enabled === "true") {
 				if (!message.channel.permissionsFor(message.member).has("ManageMessages")) {
 					let scamLinks = await bot.redis.get("bot_scamlinks").then((res: any) => JSON.parse(res));
@@ -180,7 +162,7 @@ export default {
 				}
 			}
 
-			// Check for profanity (curse words)
+			/* -------------------------------------------------- PROFANITY CHECK --------------------------------------------------*/
 			if (data.guild.automod.removeProfanity === "true") {
 				if (!message.channel.permissionsFor(message.member).has("ManageMessages")) {
 					const ignoredWords = ["hello"];
@@ -196,12 +178,8 @@ export default {
 
 					if (cursed) {
 						++data.member.infractionsCount;
-						data.member.infractions.push({
-							type: "cursing",
-							date: Date.now()
-						});
-
 						data.member.markModified("infractionsCount");
+						data.member.infractions.push({ type: "cursing", date: Date.now() });
 						data.member.markModified("infractions");
 						await data.member.save();
 						timeoutUser("cursing", message, data);
@@ -209,7 +187,7 @@ export default {
 				}
 			}
 
-			// // Check for links
+			/* -------------------------------------------------- LINKS CHECK --------------------------------------------------*/
 			// if (data.guild.automod.removeLinks === "true") {
 			// 	if (
 			// 		!message.channel.permissionsFor(message.member).has("ManageMessages") &&
@@ -235,7 +213,7 @@ export default {
 			// 	}
 			// }
 
-			// Check for spam
+			/* -------------------------------------------------- SPAM CHECK --------------------------------------------------*/
 			if (data.guild.antiSpam.enabled === "true") {
 				if (!message.channel.permissionsFor(message.member).has("ManageMessages")) {
 					if (!message.channel.name.startsWith("spam") && !message.channel.name.endsWith("spam")) {
@@ -254,12 +232,8 @@ export default {
 						const matches = foundMatches.filter((msg: any) => msg.sendTimestamp > Date.now() - 6500);
 						if (matches.length >= 5) {
 							++data.member.infractionsCount;
-							data.member.infractions.push({
-								type: "spam",
-								date: Date.now()
-							});
-
 							data.member.markModified("infractionsCount");
+							data.member.infractions.push({ type: "spam", date: Date.now() });
 							data.member.markModified("infractions");
 							await data.member.save();
 
@@ -267,7 +241,7 @@ export default {
 								const channel = bot.channels.cache.get(message.channelID);
 								if (channel) {
 									const msg = channel.messages.cache.get(message.messageID);
-									msg && msg.delete().catch((): any => { });
+									msg && msg.delete().catch((): any => {});
 								}
 							});
 
@@ -290,10 +264,9 @@ export default {
 				}
 			}
 
-			// Leveling!
+			/* -------------------------------------------------- LEVELING --------------------------------------------------*/
 			if (data.guild.leveling.enabled === "true") {
 				const RandomXP: any = Math.floor(Math.random() * 15) + 5;
-
 				data.member.xp += parseInt(RandomXP, 10);
 				data.member.level = Math.floor(0.1 * Math.sqrt(data.member.xp));
 				await data.member.save();
@@ -317,15 +290,14 @@ export default {
 			}
 		}
 
-		// If the user is part of the user blacklist, return.
+		/* -------------------------------------------------- USER BLACKLIST --------------------------------------------------*/
 		if (bot.config.blacklist.users[message.author.id]) return await message.replyT(`You have been blacklisted. Reason: ${bot.config.blacklist.users[message.author.id]}\n\nIf you think this ban wasn't correct, please contact support. (https://discord.gg/PPtzT8Mu3h)`);
 
-		// Check for a prefix
+		/* -------------------------------------------------- COMMAND HANDLER --------------------------------------------------*/
 		const prefix = process.argv.includes("--dev") === true ? "_" : "sv!";
 		if (!message.content.toLowerCase().startsWith(prefix) && message.content.match(new RegExp(`^<@!?${bot.user.id}>( |)$`))) return message.replyT(`**Hi there!**\nPlease run \`/help\` to see what I can do. \It took me ${new Date().getTime() - message.createdTimestamp}ms to send this message.`);
 		if (!message.content.toLowerCase().startsWith(prefix)) return;
 
-		// Command Handler
 		const args: string[] = message.content.slice(prefix?.length).trim().split(/ +/g);
 		const command = args.shift().toLowerCase();
 		const commandfile = bot.commands.get(command) || bot.aliases.get(command);
@@ -340,10 +312,7 @@ export default {
 
 			await message.replyT({
 				embeds: [{
-					author: {
-						name: message.author.tag,
-						iconURL: message.author.displayAvatarURL()
-					},
+					author: { name: message.author.tag, icon_url: message.author.displayAvatarURL() },
 					title: "Uh oh!",
 					description: `**An error occured while trying to run this command. Please contact support [here](https://discord.gg/PPtzT8Mu3h).**\n\n${err.message}`,
 					color: Colors.Red
