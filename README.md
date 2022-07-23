@@ -1,3 +1,5 @@
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FKingCh1ll%2FSparkV.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FKingCh1ll%2FSparkV?ref=badge_shield)
+
 <img src="https://www.sparkv.tk/assets/images/SparkV.png" alt="SparkV Logo" style="float: left; margin: 0 10px 0 0;" align="left" height="150" width="150">
 
 ### 🤖 SparkV
@@ -46,3 +48,7 @@ SparkV offers over **130+ commands** with **13 categories**!
 ### What are you waiting for?!
 
 Level up your server today! [Get SparkV](https://www.sparkv.tk/invite).
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FKingCh1ll%2FSparkV.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FKingCh1ll%2FSparkV?ref=badge_large)
